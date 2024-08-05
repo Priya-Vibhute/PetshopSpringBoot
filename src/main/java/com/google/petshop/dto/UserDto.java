@@ -1,6 +1,13 @@
 package com.google.petshop.dto;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.petshop.entity.Address;
+import com.google.petshop.entity.Order;
+import com.google.petshop.entity.Roles;
 import com.google.petshop.validator.passwordMatch;
 
 import jakarta.persistence.Id;
@@ -40,5 +47,9 @@ public class UserDto {
 	@Max(100)
 	private int age;
 	private Address address;
+	private String image;
+	@JsonIgnore
+	private List<Order> orders;
+	private Set<Roles> roles=new HashSet<Roles>();
 
 }

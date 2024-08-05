@@ -7,10 +7,14 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.google.petshop.ExceptionHandlers.IdNotFoundException;
 import com.google.petshop.dto.UserDto;
+import com.google.petshop.entity.Roles;
 import com.google.petshop.entity.User;
+import com.google.petshop.repositoy.RoleRepository;
 import com.google.petshop.repositoy.UserRepository;
 
 @Service
@@ -18,11 +22,20 @@ public class UserServiceImpl implements UserService{
 	
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	RoleRepository roleRepository;
 
 	@Override
 	public UserDto createUser(UserDto userDto) {
 		
 		userDto.setId( UUID.randomUUID().toString());
+		
+		Roles role = roleRepository.findById(1).orElseThrow(()->new RuntimeException("Id Not found"));
+		userDto.getRoles().add(role);
 			
 		User savedUser = userRepository.save(dtoToEntity(userDto));	
 			
@@ -40,6 +53,7 @@ public class UserServiceImpl implements UserService{
 		user.setPassword(userDto.getPassword());
 		user.setAge(userDto.getAge());
 		user.setAddress(userDto.getAddress());
+		user.setImage(userDto.getImage());
 		
 		User savedUser = userRepository.save(user);	
 		
@@ -50,7 +64,7 @@ public class UserServiceImpl implements UserService{
 	public void deleteUser(String id) {
 		
 		User user = userRepository.findById(id).orElseThrow(()->
-		                   new RuntimeException(id+" not found"));
+		                   new IdNotFoundException(id+" not found"));
 		userRepository.delete(user);
 				
 	}
@@ -59,7 +73,7 @@ public class UserServiceImpl implements UserService{
 	public UserDto getUserById(String id) {
 		
 		 User user = userRepository.findById(id).orElseThrow(()->
-		                      new RuntimeException(id+" not found"));	
+		                      new IdNotFoundException(id+" not found"));	
 		return entityToDto(user);
 	}
 
@@ -74,6 +88,7 @@ public class UserServiceImpl implements UserService{
 		return userDtoList;
 	}
 
+	
 	@Override
 	public UserDto entityToDto(User user) {
 		UserDto userDto = new UserDto();
@@ -83,6 +98,9 @@ public class UserServiceImpl implements UserService{
 		userDto.setPassword(user.getPassword());
 		userDto.setEmail(user.getEmail());	
 		userDto.setAddress(user.getAddress());
+		userDto.setOrders(user.getOrders());
+		userDto.setRoles(user.getRoles());
+		userDto.setImage(user.getImage());
 		return userDto;
 	}
 
@@ -92,9 +110,12 @@ public class UserServiceImpl implements UserService{
 		user.setId(userDto.getId());
 		user.setName(userDto.getName());
 		user.setAge(userDto.getAge());
-		user.setPassword(userDto.getPassword());
+		user.setPassword(passwordEncoder.encode(userDto.getPassword()));
 		user.setEmail(userDto.getEmail());	
 		user.setAddress(userDto.getAddress());
+		user.setOrders(userDto.getOrders());
+		user.setRoles(userDto.getRoles());
+		user.setImage(userDto.getImage());
 		return user;
 	}
 
